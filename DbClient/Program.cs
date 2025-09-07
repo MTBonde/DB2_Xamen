@@ -7,6 +7,7 @@ namespace DbClient;
 /// Console application demonstrating database operations.
 /// Issue #7: Database connection service with retry logic and error handling.
 /// Issue #8: User model and CREATE operation using raw SQL.
+/// Issue #9: READ operations (GetById, GetByEmail) using raw SQL.
 /// </summary>
 public static class Program
 {
@@ -34,7 +35,7 @@ public static class Program
             }
 
             // Test 2: User creation demo
-            Console.WriteLine("=== User Creation Demo (Issue #8) ===");
+            Console.WriteLine("=== User Creation Demo ===");
             
             // Demo 1: Successful user creation
             var newUser = new CreateUserRequest
@@ -80,12 +81,57 @@ public static class Program
             }
 
             Console.WriteLine();
+
+            // Test 3: READ operations demo
+            Console.WriteLine("=== READ Operations Demo ===");
+            
+            // Demo GetById
+            Console.WriteLine($"Testing GetUserByIdAsync with UserId: {createdUser.UserId}");
+            var userById = await userRepository.GetUserByIdAsync(createdUser.UserId);
+            if (userById != null)
+            {
+                Console.WriteLine(" User found by ID:");
+                Console.WriteLine($"   UserId: {userById.UserId}");
+                Console.WriteLine($"   Email: {userById.Email}");
+                Console.WriteLine($"   CreatedAt: {userById.CreatedAt}");
+            }
+            else
+            {
+                Console.WriteLine(" User not found by ID");
+            }
+            Console.WriteLine();
+
+            // Demo GetByEmail
+            Console.WriteLine($"Testing GetUserByEmailAsync with Email: {createdUser.Email}");
+            var userByEmail = await userRepository.GetUserByEmailAsync(createdUser.Email);
+            if (userByEmail != null)
+            {
+                Console.WriteLine(" User found by Email:");
+                Console.WriteLine($"   UserId: {userByEmail.UserId}");
+                Console.WriteLine($"   Email: {userByEmail.Email}");
+                Console.WriteLine($"   CreatedAt: {userByEmail.CreatedAt}");
+            }
+            else
+            {
+                Console.WriteLine(" User not found by Email");
+            }
+            Console.WriteLine();
+
+            // Demo not found scenarios
+            Console.WriteLine("Testing not found scenarios...");
+            var nonExistentUser = await userRepository.GetUserByIdAsync(99999);
+            Console.WriteLine($"GetUserByIdAsync(99999): {(nonExistentUser == null ? "null (correct)" : "unexpected result")}");
+            
+            var nonExistentEmail = await userRepository.GetUserByEmailAsync("nonexistent@example.com");
+            Console.WriteLine($"GetUserByEmailAsync(nonexistent): {(nonExistentEmail == null ? "null (correct)" : "unexpected result")}");
+            Console.WriteLine();
+
             Console.WriteLine("All database operations completed successfully!");
         }
         catch (InvalidOperationException ex)
         {
             Console.WriteLine($"Configuration Error: {ex.Message}");
-            Console.WriteLine("Check your appsettings.json connection string and ensure PostgreSQL is running.");
+            Console.WriteLine("Check your appsettings.json connection string and ensure PostgreSQL is running. Did you forget to start DOCKER?");
         }
         catch (Exception ex)
         {

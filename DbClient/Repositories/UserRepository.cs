@@ -67,4 +67,90 @@ public class UserRepository : IUserRepository
             throw new InvalidOperationException($"A user with email '{request.Email}' already exists");
         }
     }
+
+    public async Task<User?> GetUserByIdAsync(int userId)
+    {
+        // Basic input validation
+        if (userId <= 0)
+        {
+            throw new ArgumentException("User ID must be a positive integer");
+        }
+
+        // Raw SQL SELECT with parameterized query
+        const string sql = @"
+            SELECT UserId, Email, PasswordHash, CreatedAt 
+            FROM ""User"" 
+            WHERE UserId = @UserId";
+
+        try
+        {
+            using var connection = _connectionService.GetConnection();
+            using var command = connection.CreateCommand();
+            
+            command.CommandText = sql;
+            command.Parameters.Add(new NpgsqlParameter("@UserId", userId));
+
+            using var reader = await ((NpgsqlCommand)command).ExecuteReaderAsync();
+            
+            if (await reader.ReadAsync())
+            {
+                return new User
+                {
+                    UserId = reader.GetInt32("UserId"),
+                    Email = reader.GetString("Email"),
+                    PasswordHash = reader.GetString("PasswordHash"),
+                    CreatedAt = reader.GetDateTime("CreatedAt")
+                };
+            }
+
+            return null; // User not found
+        }
+        catch (NpgsqlException ex)
+        {
+            throw new InvalidOperationException($"Database error occurred while retrieving user: {ex.Message}");
+        }
+    }
+
+    public async Task<User?> GetUserByEmailAsync(string email)
+    {
+        // Basic input validation
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new ArgumentException("Email address is required");
+        }
+
+        // Raw SQL SELECT with parameterized query
+        const string sql = @"
+            SELECT UserId, Email, PasswordHash, CreatedAt 
+            FROM ""User"" 
+            WHERE Email = @Email";
+
+        try
+        {
+            using var connection = _connectionService.GetConnection();
+            using var command = connection.CreateCommand();
+            
+            command.CommandText = sql;
+            command.Parameters.Add(new NpgsqlParameter("@Email", email));
+
+            using var reader = await ((NpgsqlCommand)command).ExecuteReaderAsync();
+            
+            if (await reader.ReadAsync())
+            {
+                return new User
+                {
+                    UserId = reader.GetInt32("UserId"),
+                    Email = reader.GetString("Email"),
+                    PasswordHash = reader.GetString("PasswordHash"),
+                    CreatedAt = reader.GetDateTime("CreatedAt")
+                };
+            }
+
+            return null; // User not found
+        }
+        catch (NpgsqlException ex)
+        {
+            throw new InvalidOperationException($"Database error occurred while retrieving user: {ex.Message}");
+        }
+    }
 }
