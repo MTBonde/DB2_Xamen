@@ -43,14 +43,14 @@ public class UserRepositoryTests
         // This is a simplified test - in a real scenario, you'd mock the database reader
         // For now, let's test the validation logic
         
-        // Act & Assert - Test validation
+        // Act
         var exception = await Record.ExceptionAsync(async () => 
         {
             // This will fail at the database level, but we're testing the validation passes
             await _userRepository.CreateUserAsync(request);
         });
 
-        // The method should not throw validation exceptions for valid input
+        // Assert
         Assert.IsNotType<ArgumentException>(exception);
     }
 
@@ -64,10 +64,11 @@ public class UserRepositoryTests
             Password = "testpassword123"
         };
 
-        // Act & Assert
+        // Act
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _userRepository.CreateUserAsync(request));
         
+        // Assert
         Assert.Contains("Valid email address is required", exception.Message);
     }
 
@@ -81,10 +82,11 @@ public class UserRepositoryTests
             Password = "123"
         };
 
-        // Act & Assert
+        // Act
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _userRepository.CreateUserAsync(request));
         
+        // Assert
         Assert.Contains("Password must be at least 8 characters long", exception.Message);
     }
 
@@ -98,10 +100,113 @@ public class UserRepositoryTests
             Password = "testpassword123"
         };
 
-        // Act & Assert
+        // Act
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _userRepository.CreateUserAsync(request));
         
+        // Assert
         Assert.Contains("Valid email address is required", exception.Message);
+    }
+
+    [Fact]
+    public async Task GetUserByIdAsync_WithValidId_ShouldNotThrowValidationException()
+    {
+        // Arrange
+        int validUserId = 1;
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () => 
+        {
+            await _userRepository.GetUserByIdAsync(validUserId);
+        });
+
+        // Assert
+        Assert.IsNotType<ArgumentException>(exception);
+    }
+
+    [Fact]
+    public async Task GetUserByIdAsync_WithInvalidId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        int invalidUserId = -1;
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.GetUserByIdAsync(invalidUserId));
+        
+        // Assert
+        Assert.Contains("User ID must be a positive integer", exception.Message);
+    }
+
+    [Fact]
+    public async Task GetUserByIdAsync_WithZeroId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        int invalidUserId = 0;
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.GetUserByIdAsync(invalidUserId));
+        
+        // Assert
+        Assert.Contains("User ID must be a positive integer", exception.Message);
+    }
+
+    [Fact]
+    public async Task GetUserByEmailAsync_WithValidEmail_ShouldNotThrowValidationException()
+    {
+        // Arrange
+        string validEmail = "test@example.com";
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () => 
+        {
+            await _userRepository.GetUserByEmailAsync(validEmail);
+        });
+
+        // Assert
+        Assert.IsNotType<ArgumentException>(exception);
+    }
+
+    [Fact]
+    public async Task GetUserByEmailAsync_WithEmptyEmail_ShouldThrowArgumentException()
+    {
+        // Arrange
+        string emptyEmail = "";
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.GetUserByEmailAsync(emptyEmail));
+        
+        // Assert
+        Assert.Contains("Email address is required", exception.Message);
+    }
+
+    [Fact]
+    public async Task GetUserByEmailAsync_WithNullEmail_ShouldThrowArgumentException()
+    {
+        // Arrange
+        string? nullEmail = null;
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.GetUserByEmailAsync(nullEmail!));
+        
+        // Assert
+        Assert.Contains("Email address is required", exception.Message);
+    }
+
+    [Fact]
+    public async Task GetUserByEmailAsync_WithWhitespaceEmail_ShouldThrowArgumentException()
+    {
+        // Arrange
+        string whitespaceEmail = "   ";
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.GetUserByEmailAsync(whitespaceEmail));
+        
+        // Assert
+        Assert.Contains("Email address is required", exception.Message);
     }
 }
