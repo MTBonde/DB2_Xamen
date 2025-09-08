@@ -38,6 +38,7 @@ public class DatabaseConnectionService : IDbConnectionService
         }
 
         Console.WriteLine("DatabaseConnectionService initialized with connection pooling enabled");
+        Console.WriteLine($"DEBUG: Connection string = {_connectionString}");
     }
 
     /// <summary>
@@ -61,7 +62,8 @@ public class DatabaseConnectionService : IDbConnectionService
                 Console.WriteLine($"Connection attempt {attempt}/{MaxRetryAttempts}");
 
                 // Create and open connection - pooling is handled by Npgsql
-                var connection = new NpgsqlConnection(_connectionString);
+                var connectionString = GetConnectionStringForAttempt(attempt);
+                var connection = new NpgsqlConnection(connectionString);
                 connection.Open();
 
                 Console.WriteLine("Database connection established successfully");
@@ -114,7 +116,8 @@ public class DatabaseConnectionService : IDbConnectionService
                 "57P03", // Cannot connect now (server starting up)
                 "08006", // Connection failure
                 "08001", // Unable to connect
-                "08004"  // Server rejected connection
+                "08004", // Server rejected connection
+                "28P01"  // Password authentication failed (for debugging)
             };
 
             return transientSqlStates.Contains(npgsqlEx.SqlState);
@@ -129,5 +132,24 @@ public class DatabaseConnectionService : IDbConnectionService
 
         // Default to non-transient for unknown exceptions
         return false;
+    }
+
+    /// <summary>
+    /// Gets connection string for specific attempt, trying different hosts for Docker compatibility.
+    /// </summary>
+    /// <param name="attempt">Current attempt number (1-based)</param>
+    /// <returns>Connection string with appropriate host</returns>
+    private string GetConnectionStringForAttempt(int attempt)
+    {
+        // Try localhost first, then 127.0.0.1 as fallback for Docker networking issues
+        var connectionString = attempt switch
+        {
+            1 => _connectionString, // Use original (localhost)
+            2 => _connectionString.Replace("Host=localhost", "Host=127.0.0.1"), // Try IP
+            _ => _connectionString // Use original for remaining attempts
+        };
+
+        Console.WriteLine($"DEBUG: Attempt {attempt} using host: {(connectionString.Contains("127.0.0.1") ? "127.0.0.1" : "localhost")}");
+        return connectionString;
     }
 }
