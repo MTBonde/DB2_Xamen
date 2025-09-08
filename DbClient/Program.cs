@@ -35,6 +35,10 @@ public static class Program
                 Console.WriteLine();
             }
 
+            Console.WriteLine("Press any key to continue to CREATE demo...");
+            Console.ReadKey();
+            Console.WriteLine();
+
             // Test 2: User creation demo
             Console.WriteLine("=== User Creation Demo ===");
             
@@ -53,6 +57,10 @@ public static class Program
             Console.WriteLine($"   CreatedAt: {createdUser.CreatedAt}");
             Console.WriteLine();
 
+            Console.WriteLine("Press any key to test duplicate email handling...");
+            Console.ReadKey();
+            Console.WriteLine();
+
             // Demo 2: Duplicate email error handling
             Console.WriteLine("Testing duplicate email handling...");
             try
@@ -63,6 +71,10 @@ public static class Program
             {
                 Console.WriteLine($"Duplicate email correctly handled: {ex.Message}");
             }
+            Console.WriteLine();
+
+            Console.WriteLine("Press any key to test input validation...");
+            Console.ReadKey();
             Console.WriteLine();
 
             // Demo 3: Input validation error handling
@@ -81,6 +93,10 @@ public static class Program
                 Console.WriteLine($"Input validation working: {ex.Message}");
             }
 
+            Console.WriteLine();
+
+            Console.WriteLine("Press any key to continue to READ operations demo...");
+            Console.ReadKey();
             Console.WriteLine();
 
             // Test 3: READ operations demo
@@ -125,6 +141,10 @@ public static class Program
             
             var nonExistentEmail = await userRepository.GetUserByEmailAsync("nonexistent@example.com");
             Console.WriteLine($"GetUserByEmailAsync(nonexistent): {(nonExistentEmail == null ? "null (correct)" : "unexpected result")}");
+            Console.WriteLine();
+
+            Console.WriteLine("Press any key to continue to UPDATE operations demo...");
+            Console.ReadKey();
             Console.WriteLine();
 
             // Test 4: UPDATE operation demo
