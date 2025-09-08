@@ -195,4 +195,35 @@ public class UserRepository : IUserRepository
             throw new InvalidOperationException($"Database error occurred while updating user: {ex.Message}");
         }
     }
+
+    public async Task<bool> DeleteUserAsync(int userId)
+    {
+        // Basic input validation
+        if (userId <= 0)
+        {
+            throw new ArgumentException("User ID must be a positive integer");
+        }
+
+        // Raw SQL DELETE with parameterized query
+        const string sql = @"
+            DELETE FROM ""User"" 
+            WHERE UserId = @UserId";
+
+        try
+        {
+            using var connection = _connectionService.GetConnection();
+            using var command = connection.CreateCommand();
+            
+            command.CommandText = sql;
+            command.Parameters.Add(new NpgsqlParameter("@UserId", userId));
+
+            int rowsAffected = await ((NpgsqlCommand)command).ExecuteNonQueryAsync();
+            
+            return rowsAffected > 0; // True if user was found and deleted
+        }
+        catch (NpgsqlException ex)
+        {
+            throw new InvalidOperationException($"Database error occurred while deleting user: {ex.Message}");
+        }
+    }
 }
