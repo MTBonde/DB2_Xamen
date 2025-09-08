@@ -8,6 +8,7 @@ namespace DbClient;
 /// Issue #7: Database connection service with retry logic and error handling.
 /// Issue #8: User model and CREATE operation using raw SQL.
 /// Issue #9: READ operations (GetById, GetByEmail) using raw SQL.
+/// Issue #10: UPDATE operation (UpdateUserEmail) using raw SQL.
 /// </summary>
 public static class Program
 {
@@ -124,6 +125,36 @@ public static class Program
             
             var nonExistentEmail = await userRepository.GetUserByEmailAsync("nonexistent@example.com");
             Console.WriteLine($"GetUserByEmailAsync(nonexistent): {(nonExistentEmail == null ? "null (correct)" : "unexpected result")}");
+            Console.WriteLine();
+
+            // Test 4: UPDATE operation demo
+            Console.WriteLine("=== UPDATE Operation Demo ===");
+            
+            // Show current email
+            Console.WriteLine($"Current user email: {createdUser.Email}");
+            
+            // Update email
+            string newEmail = $"updated{DateTime.Now.Ticks}@example.com";
+            Console.WriteLine($"Updating email to: {newEmail}");
+            
+            bool updateResult = await userRepository.UpdateUserEmailAsync(createdUser.UserId, newEmail);
+            Console.WriteLine($"Update result: {(updateResult ? "Success" : "Failed - user not found")}");
+            
+            // Verify update by reading user again
+            if (updateResult)
+            {
+                var updatedUser = await userRepository.GetUserByIdAsync(createdUser.UserId);
+                if (updatedUser != null)
+                {
+                    Console.WriteLine($"Verified updated email: {updatedUser.Email}");
+                }
+            }
+            Console.WriteLine();
+
+            // Test update not found scenario
+            Console.WriteLine("Testing update with non-existent user...");
+            bool updateNonExistent = await userRepository.UpdateUserEmailAsync(99999, "test@example.com");
+            Console.WriteLine($"Update non-existent user: {(updateNonExistent ? "unexpected success" : "false (correct)")}");
             Console.WriteLine();
 
             Console.WriteLine("All database operations completed successfully!");

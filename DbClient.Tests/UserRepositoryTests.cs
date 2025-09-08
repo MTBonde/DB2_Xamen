@@ -209,4 +209,51 @@ public class UserRepositoryTests
         // Assert
         Assert.Contains("Email address is required", exception.Message);
     }
+
+    [Fact]
+    public async Task UpdateUserEmailAsync_WithInvalidUserId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        int invalidUserId = -1;
+        string newEmail = "newemail@example.com";
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.UpdateUserEmailAsync(invalidUserId, newEmail));
+        
+        // Assert
+        Assert.Contains("User ID must be a positive integer", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateUserEmailAsync_WithInvalidEmail_ShouldThrowArgumentException()
+    {
+        // Arrange
+        int userId = 1;
+        string invalidEmail = "invalid-email";
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.UpdateUserEmailAsync(userId, invalidEmail));
+        
+        // Assert
+        Assert.Contains("Valid email address is required", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateUserEmailAsync_WithValidInput_ShouldNotThrowValidationException()
+    {
+        // Arrange
+        int userId = 1;
+        string newEmail = "newemail@example.com";
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () => 
+        {
+            await _userRepository.UpdateUserEmailAsync(userId, newEmail);
+        });
+
+        // Assert
+        Assert.IsNotType<ArgumentException>(exception);
+    }
 }
