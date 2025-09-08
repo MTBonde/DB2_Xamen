@@ -9,6 +9,7 @@ namespace DbClient;
 /// Issue #8: User model and CREATE operation using raw SQL.
 /// Issue #9: READ operations (GetById, GetByEmail) using raw SQL.
 /// Issue #10: UPDATE operation (UpdateUserEmail) using raw SQL.
+/// Issue #11: DELETE operation (DeleteUser) using raw SQL.
 /// </summary>
 public static class Program
 {
@@ -175,6 +176,36 @@ public static class Program
             Console.WriteLine("Testing update with non-existent user...");
             bool updateNonExistent = await userRepository.UpdateUserEmailAsync(99999, "test@example.com");
             Console.WriteLine($"Update non-existent user: {(updateNonExistent ? "unexpected success" : "false (correct)")}");
+            Console.WriteLine();
+
+            Console.WriteLine("Press any key to continue to DELETE operations demo...");
+            Console.ReadKey();
+            Console.WriteLine();
+
+            // Test 5: DELETE operation demo
+            Console.WriteLine("=== DELETE Operation Demo ===");
+            
+            // Verify user exists before deletion
+            var userBeforeDelete = await userRepository.GetUserByIdAsync(createdUser.UserId);
+            Console.WriteLine($"User exists before delete: {(userBeforeDelete != null ? "Yes" : "No")}");
+            
+            // Delete the user
+            Console.WriteLine($"Deleting user with UserId: {createdUser.UserId}");
+            bool deleteResult = await userRepository.DeleteUserAsync(createdUser.UserId);
+            Console.WriteLine($"Delete result: {(deleteResult ? "Success" : "Failed - user not found")}");
+            
+            // Verify user no longer exists
+            if (deleteResult)
+            {
+                var userAfterDelete = await userRepository.GetUserByIdAsync(createdUser.UserId);
+                Console.WriteLine($"User exists after delete: {(userAfterDelete != null ? "Yes (unexpected)" : "No (correct)")}");
+            }
+            Console.WriteLine();
+
+            // Test delete not found scenario
+            Console.WriteLine("Testing delete with non-existent user...");
+            bool deleteNonExistent = await userRepository.DeleteUserAsync(99999);
+            Console.WriteLine($"Delete non-existent user: {(deleteNonExistent ? "unexpected success" : "false (correct)")}");
             Console.WriteLine();
 
             Console.WriteLine("All database operations completed successfully!");

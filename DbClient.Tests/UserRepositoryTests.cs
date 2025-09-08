@@ -256,4 +256,34 @@ public class UserRepositoryTests
         // Assert
         Assert.IsNotType<ArgumentException>(exception);
     }
+
+    [Fact]
+    public async Task DeleteUserAsync_WithInvalidUserId_ShouldThrowArgumentException()
+    {
+        // Arrange
+        int invalidUserId = -1;
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _userRepository.DeleteUserAsync(invalidUserId));
+        
+        // Assert
+        Assert.Contains("User ID must be a positive integer", exception.Message);
+    }
+
+    [Fact]
+    public async Task DeleteUserAsync_WithValidUserId_ShouldNotThrowValidationException()
+    {
+        // Arrange
+        int userId = 1;
+
+        // Act
+        var exception = await Record.ExceptionAsync(async () => 
+        {
+            await _userRepository.DeleteUserAsync(userId);
+        });
+
+        // Assert
+        Assert.IsNotType<ArgumentException>(exception);
+    }
 }
