@@ -153,4 +153,46 @@ public class UserRepository : IUserRepository
             throw new InvalidOperationException($"Database error occurred while retrieving user: {ex.Message}");
         }
     }
+
+    public async Task<bool> UpdateUserEmailAsync(int userId, string newEmail)
+    {
+        // Basic input validation
+        if (userId <= 0)
+        {
+            throw new ArgumentException("User ID must be a positive integer");
+        }
+
+        if (string.IsNullOrWhiteSpace(newEmail) || !newEmail.Contains("@"))
+        {
+            throw new ArgumentException("Valid email address is required");
+        }
+
+        // Raw SQL UPDATE with parameterized query
+        const string sql = @"
+            UPDATE ""User"" 
+            SET Email = @Email 
+            WHERE UserId = @UserId";
+
+        try
+        {
+            using var connection = _connectionService.GetConnection();
+            using var command = connection.CreateCommand();
+            
+            command.CommandText = sql;
+            command.Parameters.Add(new NpgsqlParameter("@Email", newEmail));
+            command.Parameters.Add(new NpgsqlParameter("@UserId", userId));
+
+            int rowsAffected = await ((NpgsqlCommand)command).ExecuteNonQueryAsync();
+            
+            return rowsAffected > 0; // True if user was found and updated
+        }
+        catch (NpgsqlException ex) when (ex.SqlState == "23505") // Unique constraint violation
+        {
+            throw new InvalidOperationException($"A user with email '{newEmail}' already exists");
+        }
+        catch (NpgsqlException ex)
+        {
+            throw new InvalidOperationException($"Database error occurred while updating user: {ex.Message}");
+        }
+    }
 }
