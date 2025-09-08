@@ -8,22 +8,23 @@ services:
   postgres:
     image: postgres:16
     container_name: mfb_postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: mfb              # Database user for application
-      POSTGRES_PASSWORD: mfb_pwd      # Password for database user
-      POSTGRES_DB: mfbdb              # Initial database name
+      POSTGRES_HOST_AUTH_METHOD: trust # No authentication required
+      POSTGRES_DB: mfbdb              # Our application database
     ports:
       - "5432:5432"                   # Expose PostgreSQL port to host
     volumes:
-      - ./db/init:/docker-entrypoint-initdb.d:ro  # Auto-run SQL scripts on first startup
+      - ./db/init/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql:ro  # Schema only
       - mfb_pgdata:/var/lib/postgresql/data        # Persistent database storage
 
   # PgAdmin4 web interface for database management
   pgadmin:
     image: dpage/pgadmin4:8
     container_name: mfb_pgadmin
+    restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com     # Login email for PgAdmin
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com  # Login email for PgAdmin
       PGADMIN_DEFAULT_PASSWORD: admin            # Login password for PgAdmin
     ports:
       - "8080:80"                     # Expose PgAdmin web interface
