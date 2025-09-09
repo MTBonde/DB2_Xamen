@@ -20,11 +20,12 @@ public static class Program
     {
         Console.WriteLine("=== Database Operations Demo ===");
         Console.WriteLine();
+        
+        IDbConnectionService connectionService = new DatabaseConnectionService();
 
         try
         {
             // Initialize services
-            IDbConnectionService connectionService = new DatabaseConnectionService();
             IUserRepository userRepository = new UserRepository(connectionService);
 
             // Test 1: Database connection test
@@ -220,7 +221,41 @@ public static class Program
             Console.WriteLine($"Unexpected Error: {ex.Message}");
             Console.WriteLine($"Exception Type: {ex.GetType().Name}");
         }
+        
+        //---------------------------ORM-------------------------------------
 
+        Console.WriteLine("\nNow ORM operations on 'Ingredient' table:\n");
+        
+        try
+        {
+            IngredientRepository ingredientRepository = new IngredientRepository(connectionService);
+            Ingredient ingredient = new Ingredient
+            {
+                IngredientId = 1,
+                Name = "Tomato",
+                CarbsPer100 = 0,
+                CreatedAt = DateTime.UtcNow,
+                EnergyKcalPer100 = 10,
+                FatPer100 = 0,
+                ProteinPer100 = 0,
+                UnitID = 2,
+                UserID = 1
+            };
+
+            Console.WriteLine("Adding ingredient: Tomato");
+
+            await ingredientRepository.CreateIngredientAsync(ingredient);
+            
+            Console.WriteLine("Added ingredient!");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Something awful! | " + e);
+            throw;
+        }
+        
+        //---------------------------Exit-------------------------------------
+        
         Console.WriteLine();
         Console.WriteLine("Press any key to exit...");
         Console.ReadKey();
