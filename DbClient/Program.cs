@@ -238,8 +238,8 @@ public static class Program
                 EnergyKcalPer100 = 10,
                 FatPer100 = 0,
                 ProteinPer100 = 0,
-                UnitID = 2,
-                UserID = 1
+                UnitId = 2,
+                UserId = 1
             };
 
             Console.WriteLine("Adding ingredient: Tomato");

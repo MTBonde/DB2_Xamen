@@ -4,7 +4,7 @@ public class Ingredient
 {
     public int IngredientId { get; set; }
     
-    public int UserID { get; set; }
+    public int UserId { get; set; }
     
     public string Name { get; set; } = string.Empty;
     
@@ -16,7 +16,7 @@ public class Ingredient
     
     public float FatPer100 { get; set; }
     
-    public int UnitID { get; set; }
+    public int UnitId { get; set; }
     
     public DateTime CreatedAt { get; set; }
 }

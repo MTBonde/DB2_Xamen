@@ -1,8 +1,13 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using DbClient.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DbClient.Repositories;
 
@@ -18,13 +23,33 @@ public class Context : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        string connectionString = _connectionService.GetConnection().ConnectionString;
-        connectionString += ";Password=mfb_pwd";
+        string connectionString = string.Empty;
+
+        //JSON magic hack to get connection string from appsettings file
+        using (StreamReader r = new StreamReader("appsettings.json"))
+        {
+            string json = r.ReadToEnd();
+            var root = JsonConvert.DeserializeObject<JObject>(json);
+            connectionString = root["ConnectionStrings"]["Postgres"].ToString();
+            Console.WriteLine("String is: " + connectionString);
+        }
+
+        if (connectionString == string.Empty)
+        {
+            Console.WriteLine(_connectionService.GetConnection().ConnectionString + " Failed!");
+            return;
+        }
         
         Console.WriteLine("Configuring...");
+        
         Console.WriteLine("Using: " + connectionString);
         optionsBuilder.UseNpgsql(connectionString);
     }
+}
+
+public class ConnectionStrings
+{ 
+    public string Postgres { get; set; }
 }
 
 public class IngredientRepository : IIngredientRepository
