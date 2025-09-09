@@ -22,6 +22,7 @@ public static class Program
         Console.WriteLine();
         
         IDbConnectionService connectionService = new DatabaseConnectionService();
+        User savedUser = null;
 
         try
         {
@@ -58,6 +59,8 @@ public static class Program
             Console.WriteLine($"   Email: {createdUser.Email}");
             Console.WriteLine($"   CreatedAt: {createdUser.CreatedAt}");
             Console.WriteLine();
+            
+            savedUser = createdUser;
 
             Console.WriteLine("Press any key to test duplicate email handling...");
             Console.ReadKey();
@@ -183,7 +186,7 @@ public static class Program
             Console.ReadKey();
             Console.WriteLine();
 
-            // Test 5: DELETE operation demo
+            /*// Test 5: DELETE operation demo
             Console.WriteLine("=== DELETE Operation Demo ===");
             
             // Verify user exists before deletion
@@ -207,7 +210,7 @@ public static class Program
             Console.WriteLine("Testing delete with non-existent user...");
             bool deleteNonExistent = await userRepository.DeleteUserAsync(99999);
             Console.WriteLine($"Delete non-existent user: {(deleteNonExistent ? "unexpected success" : "false (correct)")}");
-            Console.WriteLine();
+            Console.WriteLine();*/
 
             Console.WriteLine("All database operations completed successfully!");
         }
@@ -231,15 +234,14 @@ public static class Program
             IngredientRepository ingredientRepository = new IngredientRepository(connectionService);
             Ingredient ingredient = new Ingredient
             {
-                IngredientId = 1,
                 Name = "Tomato",
                 CarbsPer100 = 0,
                 CreatedAt = DateTime.UtcNow,
                 EnergyKcalPer100 = 10,
                 FatPer100 = 0,
                 ProteinPer100 = 0,
-                UnitId = 2,
-                UserId = 1
+                UnitId = 1,
+                UserId = savedUser.UserId
             };
 
             Console.WriteLine("Adding ingredient: Tomato");

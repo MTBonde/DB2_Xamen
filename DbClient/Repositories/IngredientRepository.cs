@@ -43,13 +43,8 @@ public class Context : DbContext
         Console.WriteLine("Configuring...");
         
         Console.WriteLine("Using: " + connectionString);
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseNpgsql(connectionString).UseLowerCaseNamingConvention();
     }
-}
-
-public class ConnectionStrings
-{ 
-    public string Postgres { get; set; }
 }
 
 public class IngredientRepository : IIngredientRepository
