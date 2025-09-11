@@ -249,6 +249,17 @@ public static class Program
             await ingredientRepository.CreateIngredientAsync(ingredient);
             
             Console.WriteLine("Added ingredient!");
+            
+            Console.WriteLine("Press any key to continue to READ operations demo...");
+            Console.ReadKey();
+            
+            Console.WriteLine();
+            
+            Console.WriteLine("Looking for ingredient...\n");
+            Ingredient? foundIngredient = await ingredientRepository.GetIngredientAsync(ingredient);
+            
+            if (foundIngredient != null)
+                Console.WriteLine("Found ingredient!" + foundIngredient.Name);
         }
         catch (Exception e)
         {
