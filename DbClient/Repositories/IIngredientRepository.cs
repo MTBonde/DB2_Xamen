@@ -5,8 +5,8 @@ namespace DbClient.Repositories;
 public interface IIngredientRepository
 {
     Task<Ingredient> CreateIngredientAsync(Ingredient ingredient);
-    
-    Task<Ingredient?> GetIngredientByIDAsync(int ingredientID);
+
+    public Task<Ingredient?> GetIngredientAsync(Ingredient ingredientToFind);
     
     Task<Ingredient?> GetIngredientByNameAsync(string name);
     

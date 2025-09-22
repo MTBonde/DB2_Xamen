@@ -65,9 +65,23 @@ public class IngredientRepository : IIngredientRepository
         return Task.FromResult(ingredient);
     }
 
-    public Task<Ingredient?> GetIngredientByIDAsync(int ingredientID)
+    public Task<Ingredient?> GetIngredientAsync(Ingredient ingredientToFind)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var foundIngredient = _context.Ingredient.FindAsync(ingredientToFind.IngredientId);
+            if (foundIngredient.IsCompletedSuccessfully)
+            {
+                return Task.FromResult(foundIngredient.Result);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        return null; //Ingredient couldn't be found
     }
 
     public Task<Ingredient?> GetIngredientByNameAsync(string name)
