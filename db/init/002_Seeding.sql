@@ -1,5 +1,4 @@
 -- PostgreSQL Seeding
--- Pre-populating basic data for the application
 
 BEGIN;
 
