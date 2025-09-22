@@ -4,6 +4,9 @@
 -- Numbering scheme: 001, 002, ..., 010, 011, ..., 100, 101, ...for easy organization
 -- next could be 002_add_users.sql
 
+
+-- Enteties
+
 CREATE TABLE "User" (
 UserId SERIAL PRIMARY KEY,
 Email VARCHAR(255) NOT NULL UNIQUE,
@@ -43,6 +46,20 @@ FOREIGN KEY (UserId) REFERENCES "User"(UserId),
 UNIQUE (UserId, Name)
 );
 
+CREATE TABLE Store (
+StoreId SERIAL PRIMARY KEY,
+Name VARCHAR(100) NOT NULL,
+Chain VARCHAR(100),
+Location TEXT
+);
+
+CREATE TABLE Barcode (
+    Code VARCHAR(20) PRIMARY KEY,
+    IngredientId INTEGER NOT NULL REFERENCES Ingredient(IngredientId)
+);
+
+-- relationel tables
+
 CREATE TABLE RecipeIngredient (
 RecipeId INTEGER NOT NULL,
 IngredientId INTEGER NOT NULL,
@@ -54,31 +71,23 @@ FOREIGN KEY (IngredientId) REFERENCES Ingredient(IngredientId),
 FOREIGN KEY (UnitId) REFERENCES Unit(UnitId)
 );
 
-CREATE TABLE Store (
-StoreId SERIAL PRIMARY KEY,
-Name VARCHAR(100) NOT NULL,
-Chain VARCHAR(100),
-Location TEXT
+CREATE TABLE StoreBarcode (
+    StoreId INTEGER NOT NULL REFERENCES Store(StoreId),
+    Code    VARCHAR(20) NOT NULL REFERENCES Barcode(Code),
+    Brand   VARCHAR(100),
+    NettoWeightGrams INTEGER CHECK (NettoWeightGrams > 0),
+    Price   INTEGER CHECK (Price >= 0),
+    BoughtOn DATE,
+    UnitPricePerKg NUMERIC GENERATED ALWAYS AS (Price / (NettoWeightGrams / 1000.0)) STORED,
+    PRIMARY KEY (StoreId, Code)
 );
 
-CREATE TABLE StoreIngredient (
-StoreId INTEGER NOT NULL,
-IngredientId INTEGER NOT NULL,
-Brand VARCHAR(100),
-Price INTEGER CHECK (Price >= 0), -- fx i øre
-NetWeightGrams INTEGER CHECK (NetWeightGrams >= 0),
-UnitPricePerKg NUMERIC GENERATED ALWAYS AS (Price / (NetWeightGrams / 1000.0)) STORED,
-BoughtOn DATE,
-PRIMARY KEY (StoreId, IngredientId),
-FOREIGN KEY (StoreId) REFERENCES Store(StoreId),
-FOREIGN KEY (IngredientId) REFERENCES Ingredient(IngredientId)
-);
+-- multi attribute tabel
 
-CREATE TABLE Barcode (
-StoreId INTEGER NOT NULL,
-IngredientId INTEGER NOT NULL,
-Code VARCHAR(20),
-PRIMARY KEY (StoreId, IngredientId),
-FOREIGN KEY (StoreId, IngredientId) REFERENCES StoreIngredient(StoreId, IngredientId),
-UNIQUE (Code)
+CREATE TABLE UserPhone (
+    UserId INTEGER  NOT NULL
+        REFERENCES "User"(UserId)
+        ON DELETE CASCADE,
+    Phone  VARCHAR(20) NOT NULL,
+    PRIMARY KEY (UserId, Phone)
 );
