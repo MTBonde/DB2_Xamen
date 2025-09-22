@@ -40,42 +40,6 @@ WHERE NOT EXISTS (
   SELECT 1 FROM Store WHERE Name='Lidl' AND COALESCE(Chain,'')='Lidl' AND COALESCE(Location,'')='Grenaa'
 );
 
--- Test users with simple hash for testing
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user1@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user1@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user2@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user2@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user3@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user3@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user4@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user4@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user5@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user5@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user6@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user6@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user7@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user7@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user8@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user8@example.com');
-
-INSERT INTO "User" (Email, PasswordHash)
-SELECT 'user9@example.com', 'secrethash'
-WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE Email='user9@example.com');
+-- Users are created in 003_performance_seed.sql
 
 COMMIT;
