@@ -19,7 +19,7 @@ INSERT INTO "User" (Email, PasswordHash, CreatedAt)
 SELECT 'perfuser'||u||'@test.local',
        md5('pwd'||u),
        now() - (u ||' minutes')::interval
-FROM generate_series(10, 1009) u
+FROM generate_series(10, 5009) u
 ON CONFLICT (Email) DO NOTHING;
 
 -- Generate ingredients for all users (including existing ones)
@@ -69,13 +69,26 @@ SELECT 'PerfStore '||s,
        'TestCity '||((s-1) % 10 + 1)
 FROM generate_series(1, 50) s;
 
--- Generate barcodes
+-- Generate barcodes (3-5 per ingredient)
 INSERT INTO Barcode (Code, IngredientId)
-SELECT '57' || lpad(i.IngredientId::text, 12, '0'),
+SELECT CASE
+         WHEN (b % 5) = 0 THEN '57' || lpad((i.IngredientId * 100 + b)::text, 12, '0')
+         WHEN (b % 5) = 1 THEN '73' || lpad((i.IngredientId * 100 + b)::text, 12, '0')
+         WHEN (b % 5) = 2 THEN '89' || lpad((i.IngredientId * 100 + b)::text, 12, '0')
+         WHEN (b % 5) = 3 THEN '62' || lpad((i.IngredientId * 100 + b)::text, 12, '0')
+         ELSE '84' || lpad((i.IngredientId * 100 + b)::text, 12, '0')
+       END,
        i.IngredientId
-FROM Ingredient i
+FROM Ingredient i,
+     generate_series(1, 3 + (i.IngredientId % 3)) b  -- 3-5 barcodes per ingredient
 WHERE i.Name LIKE 'PerfIngredient%'
-  AND (i.IngredientId % 3) = 0  -- Every 3rd ingredient gets a barcode
+ON CONFLICT (Code) DO NOTHING;
+
+-- Insert the specific barcode used in performance tests
+INSERT INTO Barcode (Code, IngredientId)
+SELECT '5710000012345', MIN(IngredientId)
+FROM Ingredient
+WHERE Name LIKE 'PerfIngredient%'
 ON CONFLICT (Code) DO NOTHING;
 
 -- Generate StoreBarcode entries
