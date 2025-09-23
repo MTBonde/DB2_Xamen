@@ -16,7 +16,7 @@ services:
       - "5432:5432"                   # Expose PostgreSQL port to host
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d:ro  # Auto-run SQL scripts on first startup
-      - ./db/performance_scripts:/performance_scripts:ro  # Performance scripts (read-only, not auto-run)
+      - ./db/performance:/performance_scripts:ro  # Performance scripts (available via docker exec)
       - mfb_pgdata:/var/lib/postgresql/data        # Persistent database storage
 
   # PgAdmin4 web interface for database management
@@ -30,7 +30,6 @@ services:
       - "8080:80"                     # Expose PgAdmin web interface
     volumes:
       - mfb_pgadmin_data:/var/lib/pgadmin        # Persistent pgAdmin data storage
-      - ./pgadmin_config/servers.json:/pgadmin4/servers.json:ro # Pre-configure database server
     depends_on:
       - postgres                      # Ensure PostgreSQL starts first
 
