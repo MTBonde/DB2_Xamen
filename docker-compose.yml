@@ -30,6 +30,7 @@ services:
       - "8080:80"                     # Expose PgAdmin web interface
     volumes:
       - mfb_pgadmin_data:/var/lib/pgadmin        # Persistent pgAdmin data storage
+      - ./pgadmin_config/servers.json:/pgadmin4/servers.json:ro # Pre-configure database server
     depends_on:
       - postgres                      # Ensure PostgreSQL starts first
 
