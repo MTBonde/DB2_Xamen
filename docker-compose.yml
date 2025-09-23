@@ -16,6 +16,7 @@ services:
       - "5432:5432"                   # Expose PostgreSQL port to host
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d:ro  # Auto-run SQL scripts on first startup
+      - ./db/performance_scripts:/performance_scripts:ro  # Performance scripts (read-only, not auto-run)
       - mfb_pgdata:/var/lib/postgresql/data        # Persistent database storage
 
   # PgAdmin4 web interface for database management
@@ -27,9 +28,13 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin            # Login password for PgAdmin
     ports:
       - "8080:80"                     # Expose PgAdmin web interface
+    volumes:
+      - mfb_pgadmin_data:/var/lib/pgadmin        # Persistent pgAdmin data storage
+      - ./pgadmin_config/servers.json:/pgadmin4/servers.json:ro # Pre-configure database server
     depends_on:
       - postgres                      # Ensure PostgreSQL starts first
 
 # Named volumes for data persistence
 volumes:
   mfb_pgdata:                         # PostgreSQL data storage volume
+  mfb_pgadmin_data:                   # PgAdmin data storage volume
