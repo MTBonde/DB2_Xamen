@@ -1,61 +1,49 @@
 -- =========================================
 -- Baseline Performance Test - BEFORE Optimization
 -- Run this BEFORE adding indexes to establish baseline
+-- pgAdmin Compatible Version
 -- =========================================
 
-\echo '========================================='
-\echo 'BASELINE PERFORMANCE TEST (No Indexes)'
-\echo '========================================='
-\echo ''
+-- =========================================
+-- BASELINE PERFORMANCE TEST (No Indexes)
+-- =========================================
 
--- Enable timing for all queries
-\timing on
-
-\echo 'TEST 1: Barcode Lookup (Equality Search)'
-\echo 'Expected: Sequential scan on Barcode table'
-\echo '-----------------------------------------'
+-- TEST 1: Barcode Lookup (Equality Search)
+-- Expected: Sequential scan on Barcode table
+-- -----------------------------------------
 
 EXPLAIN ANALYZE
-SELECT b.Code, b.IngredientId, i.Name
-FROM Barcode b
-JOIN Ingredient i ON i.IngredientId = b.IngredientId
-WHERE b.Code = '5710000012345';
+SELECT b.code, b.ingredientid, i.name
+FROM barcode b
+JOIN ingredient i ON i.ingredientid = b.ingredientid
+WHERE b.code = '5710000012345';
 
-\echo ''
-\echo 'TEST 2: User Recipe Lookup (Foreign Key Join)'
-\echo 'Expected: Sequential scan on Recipe table'
-\echo '----------------------------------------------'
-
-EXPLAIN ANALYZE
-SELECT r.RecipeId, r.Name, r.PortionCount
-FROM Recipe r
-WHERE r.UserId = 5000
-ORDER BY r.Name;
-
-\echo ''
-\echo 'TEST 3: Recipe with Ingredients (Complex Join)'
-\echo 'Expected: Multiple sequential scans and hash joins'
-\echo '--------------------------------------------------'
+-- TEST 2: User Recipe Lookup (Foreign Key Join)
+-- Expected: Sequential scan on Recipe table
+-- ----------------------------------------------
 
 EXPLAIN ANALYZE
-SELECT r.Name AS RecipeName,
-       i.Name AS IngredientName,
-       ri.Amount,
-       u.Code AS UnitCode
-FROM Recipe r
-JOIN RecipeIngredient ri ON ri.RecipeId = r.RecipeId
-JOIN Ingredient i ON i.IngredientId = ri.IngredientId
-JOIN Unit u ON u.UnitId = ri.UnitId
-WHERE r.UserId = 5000
-ORDER BY r.Name, i.Name;
+SELECT r.recipeid, r.name, r.portioncount
+FROM recipe r
+WHERE r.userid = 5000
+ORDER BY r.name;
 
-\echo ''
-\echo '========================================='
-\echo 'BASELINE TEST COMPLETE'
-\echo 'Save these results for comparison!'
-\echo 'Next: Run 005_optimization.sql'
-\echo 'Then: Run 006_comparison_test.sql'
-\echo '========================================='
+-- TEST 3: Recipe with Ingredients (Complex Join)
+-- Expected: Multiple sequential scans and hash joins
+-- --------------------------------------------------
 
--- Disable timing
-\timing off
+EXPLAIN ANALYZE
+SELECT r.name AS RecipeName,
+       i.name AS IngredientName,
+       ri.amount,
+       u.code AS UnitCode
+FROM recipe r
+JOIN recipeingredient ri ON ri.recipeid = r.recipeid
+JOIN ingredient i ON i.ingredientid = ri.ingredientid
+JOIN unit u ON u.unitid = ri.unitid
+WHERE r.userid = 5000
+ORDER BY r.name, i.name;
+
+-- =========================================
+-- BASELINE TEST COMPLETE
+-- =========================================
