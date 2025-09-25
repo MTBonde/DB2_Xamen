@@ -1,23 +1,80 @@
-# Docker Compose configuration for Recipe & Ingredient Management Database
+# Docker Compose configuration for Recipe & Ingredient Management Database with Primary-Replica Setup
 # Run with: docker-compose up -d
 # Access PgAdmin at: http://localhost:8080 (admin@admin.com / admin)
-# Database connection: Host=localhost, Port=5432, Database=mfbdb, User=mfb, Password=mfb_pwd
+# Primary database: Host=localhost, Port=5432, Database=mfbdb, User=mfb, Password=mfb_pwd
+# Replica database:  Host=localhost, Port=5433, Database=mfbdb, User=mfb, Password=mfb_pwd (read-only)
 
 services:
-  # PostgreSQL 16 database server
-  postgres:
+  # PostgreSQL 16 database server (PRIMARY)
+  pg-primary:
     image: postgres:16
     container_name: mfb_postgres
     environment:
       POSTGRES_USER: mfb              # Database user for application
       POSTGRES_PASSWORD: mfb_pwd      # Password for database user
       POSTGRES_DB: mfbdb              # Initial database name
+      POSTGRES_HOST_AUTH_METHOD: "trust"  # Allow all connections for simplicity
+    command: >
+      postgres
+      -c wal_level=replica
+      -c max_wal_senders=3
+      -c max_replication_slots=3
+      -c hot_standby=on
+      -c listen_addresses='*'
     ports:
       - "5432:5432"                   # Expose PostgreSQL port to host
     volumes:
       - ./db/init:/docker-entrypoint-initdb.d:ro  # Auto-run SQL scripts on first startup
       - ./db/performance:/performance_scripts:ro  # Performance scripts (available via docker exec)
       - mfb_pgdata:/var/lib/postgresql/data        # Persistent database storage
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mfb -d mfbdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # PostgreSQL 16 database server (REPLICA)
+  pg-replica:
+    image: postgres:16
+    container_name: mfb_postgres_replica
+    environment:
+      POSTGRES_USER: mfb              # Database user for application
+      POSTGRES_PASSWORD: mfb_pwd      # Password for database user
+      POSTGRES_DB: mfbdb              # Initial database name
+    command: |
+      bash -c "
+      echo 'Waiting for primary database and replication setup...'
+      until pg_isready -h pg-primary -p 5432 -U mfb; do
+        sleep 1
+      done
+      echo 'Primary database is responding. Checking replication slot...'
+      until pg_isready -h pg-primary -p 5432 -U replicator; do
+        echo 'Waiting for replication user to be ready...'
+        sleep 2
+      done
+      echo 'Replication setup confirmed. Setting up replica...'
+      if [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then
+        echo 'Creating base backup from primary...'
+        pg_basebackup -h pg-primary -D /var/lib/postgresql/data -U replicator -v -P -R -X stream -S replica_slot
+        chown -R postgres:postgres /var/lib/postgresql/data
+        chmod 0700 /var/lib/postgresql/data
+        echo 'Base backup completed.'
+        echo 'host replication replicator 0.0.0.0/0 trust' >> /var/lib/postgresql/data/pg_hba.conf
+      fi
+      gosu postgres postgres -c hot_standby=on
+      "
+    ports:
+      - "5433:5432"                   # Expose replica PostgreSQL port to host
+    volumes:
+      - mfb_pgdata_replica:/var/lib/postgresql/data  # Persistent replica database storage
+    depends_on:
+      pg-primary:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mfb -d mfbdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # PgAdmin4 web interface for database management
   pgadmin:
@@ -32,9 +89,11 @@ services:
       - mfb_pgadmin_data:/var/lib/pgadmin        # Persistent pgAdmin data storage
       - ./pgadmin_config/servers.json:/pgadmin4/servers.json:ro # Pre-configure database server
     depends_on:
-      - postgres                      # Ensure PostgreSQL starts first
+      - pg-primary                    # Ensure PostgreSQL starts first
+      - pg-replica
 
 # Named volumes for data persistence
 volumes:
-  mfb_pgdata:                         # PostgreSQL data storage volume
+  mfb_pgdata:                         # PostgreSQL primary data storage volume
+  mfb_pgdata_replica:                 # PostgreSQL replica data storage volume
   mfb_pgadmin_data:                   # PgAdmin data storage volume
